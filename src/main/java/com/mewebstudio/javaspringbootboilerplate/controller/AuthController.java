@@ -1,0 +1,184 @@
+package com.mewebstudio.javaspringbootboilerplate.controller;
+
+import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.LoginRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.RegisterRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.response.DetailedErrorResponse;
+import com.mewebstudio.javaspringbootboilerplate.dto.response.ErrorResponse;
+import com.mewebstudio.javaspringbootboilerplate.dto.response.SuccessResponse;
+import com.mewebstudio.javaspringbootboilerplate.dto.response.auth.TokenResponse;
+import com.mewebstudio.javaspringbootboilerplate.service.AuthService;
+import com.mewebstudio.javaspringbootboilerplate.service.MessageSourceService;
+import com.mewebstudio.javaspringbootboilerplate.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/auth")
+@RequiredArgsConstructor
+@Slf4j
+@Tag(name = "001. Auth", description = "Auth API")
+public class AuthController extends AbstractBaseController {
+    private final AuthService authService;
+
+    private final UserService userService;
+
+    private final MessageSourceService messageSourceService;
+
+    @PostMapping("/login")
+    @Operation(
+        summary = "Login endpoint",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Successful operation",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = TokenResponse.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "401",
+                description = "Bad credentials",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ErrorResponse.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "422",
+                description = "Validation failed",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = DetailedErrorResponse.class)
+                )
+            )
+        }
+    )
+    public ResponseEntity<TokenResponse> login(
+        @Parameter(description = "Request body to login", required = true)
+        @RequestBody @Validated final LoginRequest request
+    ) {
+        log.info("Login request received: {}", request.getEmail());
+        return ResponseEntity.ok(authService.login(request.getEmail(), request.getPassword(), request.getRememberMe()));
+    }
+
+    @PostMapping("/register")
+    @Operation(
+        summary = "Register endpoint",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Successful operation",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = SuccessResponse.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "401",
+                description = "Bad credentials",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ErrorResponse.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "422",
+                description = "Validation failed",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = DetailedErrorResponse.class)
+                )
+            )
+        }
+    )
+    public ResponseEntity<SuccessResponse> register(
+        @Parameter(description = "Request body to register", required = true)
+        @RequestBody @Valid RegisterRequest request
+    ) throws BindException {
+        userService.register(request);
+
+        return ResponseEntity.ok(SuccessResponse.builder().message(messageSourceService.get("registered")).build());
+    }
+
+    @GetMapping("/email-verification/{token}")
+    @Operation(
+        summary = "E-mail verification endpoint",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Successful operation",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = SuccessResponse.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "404",
+                description = "Not found verification token",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ErrorResponse.class)
+                )
+            )
+        }
+    )
+    public ResponseEntity<SuccessResponse> emailVerification(
+        @Parameter(name = "token", description = "E-mail verification token", required = true)
+        @PathVariable("token") final String token
+    ) {
+        userService.verifyEmail(token);
+
+        return ResponseEntity.ok(SuccessResponse.builder()
+            .message(messageSourceService.get("your_email_verified"))
+            .build());
+    }
+
+    @PostMapping("/refresh")
+    @Operation(
+        summary = "Refresh endpoint",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Successful operation",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = TokenResponse.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "400",
+                description = "Bad credentials",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ErrorResponse.class)
+                )
+            )
+        }
+    )
+    public ResponseEntity<TokenResponse> refresh(
+        @Parameter(description = "Refresh token", required = true)
+        @RequestHeader("Authorization") @Validated final String refreshToken
+    ) {
+        log.info("Refresh request received: {}", refreshToken);
+        return ResponseEntity.ok(authService.refreshFromBearerString(refreshToken));
+    }
+}

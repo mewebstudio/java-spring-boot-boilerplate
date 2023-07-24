@@ -1,0 +1,16 @@
+<div xmlns:th="http://www.thymeleaf.org">
+    <th:block th:fragment="footer">
+        <div class="footer">
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="content-block">
+                        <span class="apple-link">
+                            &copy; <span th:text="${#dates.year(#dates.createNow())}"/>
+                            <a th:href="${FRONTEND_URL}" th:text="${APP_NAME}" target="_blank"/>
+                        </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </th:block>
+</div>

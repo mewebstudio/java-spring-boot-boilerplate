@@ -1,0 +1,540 @@
+{
+	"info": {
+		"_postman_id": "29109c5f-13f2-4199-ad51-af8304d4efbf",
+		"name": "Java Spring Boot Boilerplate",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "2079870",
+		"_collection_link": "https://lunar-capsule-667882.postman.co/workspace/Team-Workspace~4a00e7a1-03fc-466b-82c8-45cf6f1cd4c6/collection/2079870-29109c5f-13f2-4199-ad51-af8304d4efbf?action=share&creator=2079870&source=collection_link"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"mail@example.com\",\n    \"password\": \"P@sswd123.\",\n    \"passwordConfirm\": \"P@sswd123.\",\n    \"name\": \"John\",\n    \"lastName\": \"DOE\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base}}/auth/register",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "E-mail verification",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base}}/auth/email-verification/{{email-verification-token}}",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"auth",
+								"email-verification",
+								"{{email-verification-token}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login - User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = JSON.parse(responseBody);",
+									"pm.collectionVariables.set(\"token\", response.token);",
+									"pm.collectionVariables.set(\"refresh_token\", response.refreshToken);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"P@sswd123.\",\n    \"rememberMe\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base}}/auth/login",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login - Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = JSON.parse(responseBody);",
+									"pm.collectionVariables.set(\"token\", response.token);",
+									"pm.collectionVariables.set(\"refresh_token\", response.refreshToken);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"P@sswd123.\",\n    \"rememberMe\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base}}/auth/login",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = JSON.parse(responseBody);",
+									"pm.collectionVariables.set(\"token\", response.token);",
+									"pm.collectionVariables.set(\"refresh_token\", response.refreshToken);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{refresh_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base}}/auth/refresh",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"auth",
+								"refresh"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "noauth"
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Registered",
+			"item": [
+				{
+					"name": "Admin",
+					"item": [
+						{
+							"name": "Users",
+							"item": [
+								{
+									"name": "List",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"const response = JSON.parse(responseBody);",
+													"pm.collectionVariables.set(\"user-id\", response.items[0].id);",
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base}}/admin/users",
+											"host": [
+												"{{base}}"
+											],
+											"path": [
+												"admin",
+												"users"
+											],
+											"query": [
+												{
+													"key": "page",
+													"value": "1",
+													"disabled": true
+												},
+												{
+													"key": "size",
+													"value": "20",
+													"disabled": true
+												},
+												{
+													"key": "sortBy",
+													"value": "createdAt",
+													"disabled": true
+												},
+												{
+													"key": "sort",
+													"value": "asc",
+													"disabled": true
+												},
+												{
+													"key": "roles",
+													"value": "admin,user",
+													"disabled": true
+												},
+												{
+													"key": "isAvatar",
+													"value": "true",
+													"disabled": true
+												},
+												{
+													"key": "isBlocked",
+													"value": "true",
+													"disabled": true
+												},
+												{
+													"key": "q",
+													"value": "John",
+													"disabled": true
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Create",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"const locationParts = pm.response.headers.get('Location').split('/');",
+													"pm.collectionVariables.set(\"user-id\", locationParts[locationParts.length - 1]);",
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"email\": \"mail@example.com\",\n    \"password\": \"P@sswd123.\",\n    \"passwordConfirm\": \"P@sswd123.\",\n    \"name\": \"John\",\n    \"lastName\": \"DOE\",\n    \"roles\": [\"user\"],\n    \"isEmailVerified\": true,\n    \"isBlocked\": false\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base}}/admin/users",
+											"host": [
+												"{{base}}"
+											],
+											"path": [
+												"admin",
+												"users"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Show",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base}}/admin/users/{{user-id}}",
+											"host": [
+												"{{base}}"
+											],
+											"path": [
+												"admin",
+												"users",
+												"{{user-id}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "PATCH",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"email\": \"mail@example.com\",\n    \"password\": \"P@sswd123.\",\n    \"passwordConfirm\": \"P@sswd123.\",\n    \"name\": \"John\",\n    \"lastName\": \"DOE\",\n    \"roles\": [\"user\", \"admin\"],\n    \"isEmailVerified\": true,\n    \"isBlocked\": false\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base}}/admin/users/{{user-id}}",
+											"host": [
+												"{{base}}"
+											],
+											"path": [
+												"admin",
+												"users",
+												"{{user-id}}"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Account",
+					"item": [
+						{
+							"name": "Me",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base}}/account/me",
+									"host": [
+										"{{base}}"
+									],
+									"path": [
+										"account",
+										"me"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update password",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"oldPassword\": \"P@sswd123.\",\n    \"password\": \"P@sswd123.\",\n    \"passwordConfirm\": \"P@sswd123.\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base}}/account/password",
+									"host": [
+										"{{base}}"
+									],
+									"path": [
+										"account",
+										"password"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Resend e-mail verification",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base}}/account/resend-email-verification",
+									"host": [
+										"{{base}}"
+									],
+									"path": [
+										"account",
+										"resend-email-verification"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Dashboard",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base}}/dashboard",
+					"host": [
+						"{{base}}"
+					],
+					"path": [
+						"dashboard"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": ""
+		},
+		{
+			"key": "refresh_token",
+			"value": ""
+		},
+		{
+			"key": "user-id",
+			"value": ""
+		}
+	]
+}
