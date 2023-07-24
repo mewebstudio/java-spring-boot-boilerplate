@@ -278,7 +278,7 @@ public class UserService {
      *
      * @param request UpdatePasswordRequest
      */
-    public void updatePassword(UpdatePasswordRequest request) throws BindException {
+    public User updatePassword(UpdatePasswordRequest request) throws BindException {
         User user = getUser();
 
         BindingResult bindingResult = new BeanPropertyBindingResult(request, "request");
@@ -297,7 +297,8 @@ public class UserService {
         }
 
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        userRepository.save(user);
+
+        return userRepository.save(user);
     }
 
     /**
@@ -398,10 +399,6 @@ public class UserService {
         if (bindingResult.hasErrors()) {
             throw new BindException(bindingResult);
         }
-
-        user.setEmail(request.getEmail());
-        user.setName(request.getName());
-        user.setLastName(request.getLastName());
 
         userRepository.save(user);
 

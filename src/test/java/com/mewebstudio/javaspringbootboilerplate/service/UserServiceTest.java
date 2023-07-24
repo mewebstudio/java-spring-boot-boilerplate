@@ -2,6 +2,7 @@ package com.mewebstudio.javaspringbootboilerplate.service;
 
 import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.RegisterRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.user.CreateUserRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdatePasswordRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdateUserRequest;
 import com.mewebstudio.javaspringbootboilerplate.entity.User;
 import com.mewebstudio.javaspringbootboilerplate.entity.specification.UserFilterSpecification;
@@ -366,6 +367,7 @@ class UserServiceTest {
             // Given
             request.setRoles(List.of(Constants.RoleEnum.USER.name()));
             request.setIsEmailVerified(true);
+            user.setEmail("oldEmail");
             request.setEmail("newEmail");
             when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(user));
             when(userRepository.save(any(User.class))).thenReturn(user);
@@ -390,6 +392,69 @@ class UserServiceTest {
             User result = userService.update(user.getId().toString(), request);
             // Then
             assertNotNull(result);
+        }
+    }
+
+    @Nested
+    @DisplayName("Test class for class update password scenarios")
+    class UpdatePasswordTest {
+        @Test
+        @DisplayName("Test class for class update password scenarios")
+        void given_whenUpdatePassword_thenAssertBody() throws BindException {
+            // Given
+            UpdatePasswordRequest request = Instancio.create(UpdatePasswordRequest.class);
+            request.setOldPassword("OldP@ssw0rd123.");
+            request.setPassword("P@ssw0rd123.");
+            request.setPasswordConfirm("P@ssw0rd123.");
+            when(userRepository.findById(UUID.fromString(jwtUserDetails.getId()))).thenReturn(Optional.of(user));
+            when(passwordEncoder.matches(any(String.class), any(String.class))).thenReturn(true);
+            when(passwordEncoder.encode(any(String.class))).thenReturn("encodedPassword");
+            when(userRepository.save(any(User.class))).thenReturn(user);
+            // When
+            User result = userService.updatePassword(request);
+            // Then
+            assertNotNull(result);
+        }
+
+        @Test
+        @DisplayName("Test class for class update password scenarios")
+        void given_whenUpdatePassword_thenBindingException() {
+            // Given
+            UpdatePasswordRequest request = Instancio.create(UpdatePasswordRequest.class);
+            request.setOldPassword("OldP@ssw0rd123.");
+            request.setPassword("OldP@ssw0rd123.");
+            when(userRepository.findById(UUID.fromString(jwtUserDetails.getId()))).thenReturn(Optional.of(user));
+            // When
+            Executable executable = () -> userService.updatePassword(Instancio.create(UpdatePasswordRequest.class));
+            // Then
+            assertThrows(BindException.class, executable);
+        }
+    }
+
+    @Nested
+    @DisplayName("Test class for class delete scenarios")
+    class DeleteTest {
+        @Test
+        @DisplayName("Happy path")
+        void given_whenDelete_thenAssertBody() {
+            // Given
+            when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(user));
+            // When
+            userService.delete(user.getId().toString());
+            // Then
+            Mockito.verify(userRepository, Mockito.times(1)).delete(user);
+        }
+
+        @Test
+        @DisplayName("When user not found")
+        void given_whenDelete_thenAssertNotFound() {
+            // When
+            Executable executable = () -> userService.delete(user.getId().toString());
+            // Then
+            assertThrows(NotFoundException.class, executable);
+            assertEquals(messageSourceService.get("not_found_with_param",
+                    new String[]{messageSourceService.get("user")}),
+                assertThrows(NotFoundException.class, executable).getMessage());
         }
     }
 }
