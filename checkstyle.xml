@@ -192,7 +192,7 @@
         <module name="OuterTypeFilename"/>
 
         <module name="UncommentedMain">
-            <property name="excludedClasses" value="\.SpringBootUrlShortenerApplication"/>
+            <property name="excludedClasses" value="\.MainApplication"/>
         </module>
 
         <module name="UpperEll"/>
