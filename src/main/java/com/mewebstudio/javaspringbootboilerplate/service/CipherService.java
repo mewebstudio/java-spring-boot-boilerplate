@@ -1,6 +1,7 @@
-package com.mewebstudio.javaspringbootboilerplate.util;
+package com.mewebstudio.javaspringbootboilerplate.service;
 
 import com.mewebstudio.javaspringbootboilerplate.exception.CipherException;
+import com.mewebstudio.javaspringbootboilerplate.util.AESCipher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
