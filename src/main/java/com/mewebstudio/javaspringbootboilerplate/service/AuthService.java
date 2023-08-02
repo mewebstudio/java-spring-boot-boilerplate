@@ -46,6 +46,8 @@ public class AuthService {
      * @return TokenResponse
      */
     public TokenResponse login(String email, final String password, final Boolean rememberMe) {
+        log.info("Login request received: {}", email);
+
         String badCredentialsMessage = messageSourceService.get("bad_credentials");
 
         try {
@@ -113,6 +115,8 @@ public class AuthService {
      * @return TokenResponse
      */
     private TokenResponse refresh(final String refreshToken) {
+        log.info("Refresh request received: {}", refreshToken);
+
         if (!jwtTokenProvider.validateToken(refreshToken)) {
             log.error("Refresh token is expired.");
             throw new RefreshTokenExpiredException();

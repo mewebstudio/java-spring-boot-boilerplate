@@ -18,7 +18,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
@@ -36,7 +35,6 @@ import static com.mewebstudio.javaspringbootboilerplate.util.Constants.SECURITY_
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
-@Slf4j
 @Tag(name = "001. Auth", description = "Auth API")
 public class AuthController extends AbstractBaseController {
     private final AuthService authService;
@@ -79,7 +77,6 @@ public class AuthController extends AbstractBaseController {
         @Parameter(description = "Request body to login", required = true)
         @RequestBody @Validated final LoginRequest request
     ) {
-        log.info("Login request received: {}", request.getEmail());
         return ResponseEntity.ok(authService.login(request.getEmail(), request.getPassword(), request.getRememberMe()));
     }
 
@@ -181,7 +178,6 @@ public class AuthController extends AbstractBaseController {
         @Parameter(description = "Refresh token", required = true)
         @RequestHeader("Authorization") @Validated final String refreshToken
     ) {
-        log.info("Refresh request received: {}", refreshToken);
         return ResponseEntity.ok(authService.refreshFromBearerString(refreshToken));
     }
 
