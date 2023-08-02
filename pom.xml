@@ -12,7 +12,7 @@
     <artifactId>java-spring-boot-boilerplate</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>java-spring-boot-boilerplate</name>
-    <description>URL Shortener Backend API (Spring Boot 3)</description>
+    <description>Java Spring Boot Boilerplate (Spring Boot 3)</description>
     <properties>
         <java.version>17</java.version>
         <lombok.version>1.18.28</lombok.version>
@@ -231,7 +231,7 @@
                     <diffChangeLogFile>
                         ${project.basedir}/src/main/resources/db/changelog/migrations/${maven.build.timestamp}_changelog.xml
                     </diffChangeLogFile>
-                    <url>jdbc:postgresql://localhost:5432/url_shortener</url>
+                    <url>jdbc:postgresql://localhost:5432/app_db</url>
                     <username>postgres</username>
                     <password>secret</password>
                     <referenceUrl>hibernate:spring:com.mewebstudio.javaspringbootboilerplate?dialect=org.hibernate.dialect.PostgreSQLDialect&amp;hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy</referenceUrl>
