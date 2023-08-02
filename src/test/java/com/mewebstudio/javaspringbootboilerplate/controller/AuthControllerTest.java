@@ -110,4 +110,20 @@ class AuthControllerTest {
         assertEquals(tokenResponse, response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
+
+    @Test
+    @DisplayName("Test for forgot logout")
+    void given_whenLogout_thenAssertBody() {
+        // Given
+        when(userService.getUser()).thenReturn(user);
+        doNothing().when(authService).logout(user);
+        when(messageSourceService.get("logout_successfully")).thenReturn("successfully");
+        // When
+        ResponseEntity<SuccessResponse> response = authController.logout();
+        // Then
+        assertNotNull(response);
+        assertNotNull(response.getBody());
+        assertEquals("successfully", response.getBody().getMessage());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
 }

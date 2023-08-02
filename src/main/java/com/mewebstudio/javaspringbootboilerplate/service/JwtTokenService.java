@@ -58,5 +58,6 @@ public class JwtTokenService {
      */
     public void delete(JwtToken jwtToken) {
         jwtTokenRepository.delete(jwtToken);
+        log.info("Deleted token: {}", jwtToken);
     }
 }

@@ -24,12 +24,17 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
+import java.util.UUID;
+
+import static com.mewebstudio.javaspringbootboilerplate.util.Constants.TOKEN_HEADER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @Tag("unit")
@@ -60,6 +65,10 @@ class AuthServiceTest {
     private final User user = Instancio.create(User.class);
 
     private final TokenResponse tokenResponse = Instancio.create(TokenResponse.class);
+
+    private final String bearerToken = "Bearer token";
+
+    private final String token = "token";
 
     @BeforeEach
     void setUp() {
@@ -179,8 +188,6 @@ class AuthServiceTest {
         @DisplayName("Test for successful refreshBearerString")
         void given_whenRefreshFromBearerString_thenAssertBody() {
             // Given
-            String bearerToken = "Bearer token";
-            String token = "token";
             JwtToken oldToken = Instancio.create(JwtToken.class);
             oldToken.setRememberMe(true);
             when(jwtTokenProvider.extractJwtFromBearerString(bearerToken)).thenReturn(token);
@@ -196,6 +203,61 @@ class AuthServiceTest {
             assertNotNull(response);
             assertEquals("newToken", response.getToken());
             assertEquals("newRefresh", response.getRefreshToken());
+        }
+    }
+
+    @Nested
+    @DisplayName("Test class for logout scenarios")
+    class LogoutTest {
+        private final User user = Instancio.create(User.class);
+
+        private final JwtToken jwtToken = Instancio.create(JwtToken.class);
+
+        @BeforeEach
+        void setUp() {
+            jwtToken.setUserId(user.getId());
+        }
+
+        @Test
+        @DisplayName("Test for successful logout")
+        void given_whenLogoutWithBearerToken_thenAssertBody() {
+            // Given
+            when(jwtTokenProvider.extractJwtFromBearerString(bearerToken)).thenReturn(token);
+            when(jwtTokenService.findByTokenOrRefreshToken(token)).thenReturn(jwtToken);
+            // When
+            authService.logout(user, bearerToken);
+            // Then
+            verify(jwtTokenProvider, times(1)).extractJwtFromBearerString(bearerToken);
+            verify(jwtTokenService, times(1)).findByTokenOrRefreshToken(token);
+            verify(jwtTokenService, times(1)).delete(any());
+        }
+
+        @Test
+        @DisplayName("Test for successful logout")
+        void given_whenLogoutWithoutBearerToken_thenAssertBody() {
+            // Given
+            when(httpServletRequest.getHeader(TOKEN_HEADER)).thenReturn(bearerToken);
+            when(jwtTokenProvider.extractJwtFromBearerString(bearerToken)).thenReturn(token);
+            when(jwtTokenService.findByTokenOrRefreshToken(token)).thenReturn(jwtToken);
+            // When
+            authService.logout(user);
+            // Then
+            verify(jwtTokenProvider, times(1)).extractJwtFromBearerString(bearerToken);
+            verify(jwtTokenService, times(1)).findByTokenOrRefreshToken(token);
+            verify(jwtTokenService, times(1)).delete(any());
+        }
+
+        @Test
+        @DisplayName("Test for authentication credentials not found exception")
+        void given_whenLogoutWithBearerToken_thenThrowAuthenticationCredentialsNotFoundException() {
+            // Given
+            jwtToken.setUserId(UUID.randomUUID());
+            when(jwtTokenProvider.extractJwtFromBearerString(bearerToken)).thenReturn(token);
+            when(jwtTokenService.findByTokenOrRefreshToken(token)).thenReturn(jwtToken);
+            // When
+            Executable executable = () -> authService.logout(user, bearerToken);
+            // Then
+            assertThrows(AuthenticationCredentialsNotFoundException.class, executable);
         }
     }
 }

@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import static com.mewebstudio.javaspringbootboilerplate.util.Constants.SECURITY_SCHEME_NAME;
 
 @RestController
 @RequestMapping("/auth")
@@ -93,14 +96,6 @@ public class AuthController extends AbstractBaseController {
                 )
             ),
             @ApiResponse(
-                responseCode = "401",
-                description = "Bad credentials",
-                content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = ErrorResponse.class)
-                )
-            ),
-            @ApiResponse(
                 responseCode = "422",
                 description = "Validation failed",
                 content = @Content(
@@ -152,7 +147,7 @@ public class AuthController extends AbstractBaseController {
             .build());
     }
 
-    @PostMapping("/refresh")
+    @GetMapping("/refresh")
     @Operation(
         summary = "Refresh endpoint",
         responses = {
@@ -166,6 +161,14 @@ public class AuthController extends AbstractBaseController {
             ),
             @ApiResponse(
                 responseCode = "400",
+                description = "Bad request",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ErrorResponse.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "401",
                 description = "Bad credentials",
                 content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -180,5 +183,44 @@ public class AuthController extends AbstractBaseController {
     ) {
         log.info("Refresh request received: {}", refreshToken);
         return ResponseEntity.ok(authService.refreshFromBearerString(refreshToken));
+    }
+
+    @GetMapping("/logout")
+    @Operation(
+        summary = "Logout endpoint",
+        security = @SecurityRequirement(name = SECURITY_SCHEME_NAME),
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Successful operation",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = SuccessResponse.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "400",
+                description = "Bad request",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ErrorResponse.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "401",
+                description = "Bad request",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ErrorResponse.class)
+                )
+            )
+        }
+    )
+    public ResponseEntity<SuccessResponse> logout() {
+        authService.logout(userService.getUser());
+
+        return ResponseEntity.ok(SuccessResponse.builder()
+            .message(messageSourceService.get("logout_successfully"))
+            .build());
     }
 }

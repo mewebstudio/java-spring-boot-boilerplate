@@ -14,6 +14,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -33,8 +34,10 @@ public class JwtTokenProvider {
 
     private final String appSecret;
 
+    @Getter
     private final Long tokenExpiresIn;
 
+    @Getter
     private Long refreshTokenExpiresIn;
 
     private final Long rememberMeTokenExpiresIn;
@@ -189,24 +192,6 @@ public class JwtTokenProvider {
         }
 
         return false;
-    }
-
-    /**
-     * Get jwt token expires in seconds.
-     *
-     * @return Long
-     */
-    public Long getTokenExpiresIn() {
-        return this.tokenExpiresIn;
-    }
-
-    /**
-     * Get jwt refresh token expires in seconds.
-     *
-     * @return Long
-     */
-    public Long getRefreshTokenExpiresIn() {
-        return this.refreshTokenExpiresIn;
     }
 
     /**

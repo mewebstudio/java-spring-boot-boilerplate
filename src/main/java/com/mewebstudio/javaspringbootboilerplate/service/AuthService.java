@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
+import static com.mewebstudio.javaspringbootboilerplate.util.Constants.TOKEN_HEADER;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -75,6 +77,33 @@ public class AuthService {
      */
     public TokenResponse refreshFromBearerString(final String bearer) {
         return refresh(jwtTokenProvider.extractJwtFromBearerString(bearer));
+    }
+
+    /**
+     * Logout from bearer string by user.
+     *
+     * @param user   User
+     * @param bearer String
+     */
+    public void logout(User user, final String bearer) {
+        JwtToken jwtToken = jwtTokenService.findByTokenOrRefreshToken(
+            jwtTokenProvider.extractJwtFromBearerString(bearer));
+
+        if (!user.getId().equals(jwtToken.getUserId())) {
+            log.error("User id: {} is not equal to token user id: {}", user.getId(), jwtToken.getUserId());
+            throw new AuthenticationCredentialsNotFoundException(messageSourceService.get("bad_credentials"));
+        }
+
+        jwtTokenService.delete(jwtToken);
+    }
+
+    /**
+     * Logout from bearer string by user.
+     *
+     * @param user User
+     */
+    public void logout(User user) {
+        logout(user, httpServletRequest.getHeader(TOKEN_HEADER));
     }
 
     /**
