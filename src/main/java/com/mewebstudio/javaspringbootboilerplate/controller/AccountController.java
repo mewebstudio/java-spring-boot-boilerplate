@@ -31,7 +31,7 @@ import static com.mewebstudio.javaspringbootboilerplate.util.Constants.SECURITY_
 @RequiredArgsConstructor
 @RequestMapping("/account")
 @Tag(name = "002. Account", description = "Account API")
-public class AccountController {
+public class AccountController extends AbstractBaseController {
     private final UserService userService;
 
     private final MessageSourceService messageSourceService;

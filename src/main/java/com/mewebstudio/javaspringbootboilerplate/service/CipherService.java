@@ -1,7 +1,6 @@
 package com.mewebstudio.javaspringbootboilerplate.service;
 
 import com.mewebstudio.javaspringbootboilerplate.exception.CipherException;
-import com.mewebstudio.javaspringbootboilerplate.util.AESCipher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -11,6 +10,13 @@ import org.springframework.stereotype.Service;
 public class CipherService {
     @Value("${app.secret}")
     private String appSecret;
+
+    private final AESCipherService aesCipherService;
+
+    public CipherService(@Value("${app.secret}") String appSecret, AESCipherService aesCipherService) {
+        this.appSecret = appSecret;
+        this.aesCipherService = aesCipherService;
+    }
 
     /**
      * Encrypt plain text with secret key.
@@ -22,7 +28,7 @@ public class CipherService {
      */
     public String encrypt(String plainText, String secretKey) {
         try {
-            return AESCipher.encrypt(plainText, secretKey);
+            return aesCipherService.encrypt(plainText, secretKey);
         } catch (Exception e) {
             log.error("Encrypting error", e);
             throw new CipherException(e);
@@ -55,7 +61,7 @@ public class CipherService {
      */
     public String decrypt(String encryptedText, String secretKey) {
         try {
-            return AESCipher.decrypt(encryptedText, secretKey);
+            return aesCipherService.decrypt(encryptedText, secretKey);
         } catch (Exception e) {
             log.error("Decrypting error", e);
             throw new CipherException(e);

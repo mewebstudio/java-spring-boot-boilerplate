@@ -34,7 +34,7 @@ import static org.mockito.Mockito.when;
 
 @Tag("unit")
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Unit Tests for AuthService")
+@DisplayName("Unit tests for AuthService")
 class AuthServiceTest {
     @InjectMocks
     private AuthService authService;
@@ -141,7 +141,6 @@ class AuthServiceTest {
     @DisplayName("Test class for refresh scenarios")
     class RefreshTest {
         private final String token = "token";
-        private final JwtToken jwtToken = Instancio.create(JwtToken.class);
 
         @Test
         @DisplayName("Test for successful refresh")
