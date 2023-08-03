@@ -26,7 +26,7 @@ app:
 spring:
   application:
     name: ${APP_NAME:AppName}
-    description: ${APP_DESCRIPTION:Url Shortener backend API}
+    description: ${APP_DESCRIPTION:App Description}
   jpa:
     hibernate:
       ddl-auto: ${DB_DDL_AUTO:none}
