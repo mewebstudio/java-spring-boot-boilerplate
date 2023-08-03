@@ -165,7 +165,7 @@
 								}
 							]
 						},
-						"method": "POST",
+						"method": "GET",
 						"header": [],
 						"url": {
 							"raw": "{{base}}/auth/refresh",
@@ -175,6 +175,48 @@
 							"path": [
 								"auth",
 								"refresh"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//const response = JSON.parse(responseBody);",
+									"//pm.collectionVariables.set(\"token\", response.token);",
+									"//pm.collectionVariables.set(\"refresh_token\", response.refreshToken);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base}}/auth/logout",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"auth",
+								"logout"
 							]
 						}
 					},
