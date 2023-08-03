@@ -7,6 +7,7 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -91,7 +92,7 @@ public class MailSenderService {
                 subject, templateEngine.process("mail/user-email-verification", ctx));
 
             log.info(String.format("[EmailService] Sent verification e-mail: %s - %s", user.getId(), user.getEmail()));
-        } catch (UnsupportedEncodingException | MessagingException e) {
+        } catch (UnsupportedEncodingException | MessagingException | MailException e) {
             log.error(String.format("[EmailService] Failed to send verification e-mail: %s", e.getMessage()));
         }
     }
@@ -120,7 +121,10 @@ public class MailSenderService {
      * @param text    String message
      * @throws MessagingException when sending fails
      */
-    private void send(InternetAddress from, InternetAddress to, String subject, String text) throws MessagingException {
+    private void send(InternetAddress from,
+                      InternetAddress to,
+                      String subject,
+                      String text) throws MessagingException, MailException {
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true);
         mimeMessageHelper.setFrom(from);

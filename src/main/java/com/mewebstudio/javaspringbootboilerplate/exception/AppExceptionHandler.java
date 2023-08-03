@@ -84,9 +84,12 @@ public class AppExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
     }
 
-    @ExceptionHandler(RefreshTokenExpiredException.class)
-    public final ResponseEntity<ErrorResponse> handleRefreshTokenExpiredRequestException(
-        final RefreshTokenExpiredException e) {
+    @ExceptionHandler({
+        TokenExpiredException.class,
+        RefreshTokenExpiredException.class,
+    })
+    public final ResponseEntity<ErrorResponse> handleTokenExpiredRequestException(
+        final TokenExpiredException e) {
         log.error(e.toString(), e.getMessage());
         return build(HttpStatus.UNAUTHORIZED, e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
     }
@@ -107,7 +110,7 @@ public class AppExceptionHandler {
         return build(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
 
-    @ExceptionHandler({AccessDeniedException.class})
+    @ExceptionHandler(AccessDeniedException.class)
     public final ResponseEntity<ErrorResponse> handleAccessDeniedException(final Exception e) {
         log.error(e.toString(), e.getMessage());
         return build(HttpStatus.FORBIDDEN, e.getMessage());

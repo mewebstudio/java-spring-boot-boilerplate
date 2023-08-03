@@ -77,7 +77,7 @@ public final class UserFilterSpecification implements Specification<User> {
             );
         }
 
-        if (predicates.size() > 0) {
+        if (!predicates.isEmpty()) {
             query.where(predicates.toArray(new Predicate[0]));
         }
 

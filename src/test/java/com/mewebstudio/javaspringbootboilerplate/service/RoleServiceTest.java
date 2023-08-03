@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 
 @Tag("unit")
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Unit Tests for RoleService")
+@DisplayName("Unit tests for RoleService")
 class RoleServiceTest {
     @InjectMocks
     private RoleService roleService;

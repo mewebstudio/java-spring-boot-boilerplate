@@ -19,7 +19,7 @@ import static org.mockito.Mockito.when;
 
 @Tag("unit")
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Unit Tests for MessageSourceService")
+@DisplayName("Unit tests for MessageSourceService")
 class MessageSourceServiceTest {
     @InjectMocks
     private MessageSourceService messageSourceService;
