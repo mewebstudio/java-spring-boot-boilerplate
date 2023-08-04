@@ -1,5 +1,7 @@
 # Java Spring Boot Boilerplate (Spring Boot 3.1)
 
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 ### Included technologies
 - Spring Boot 3.1
 - Spring Security

@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.1.1</version>
+        <version>3.1.2</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.mewebstudio</groupId>
@@ -17,7 +17,7 @@
         <java.version>17</java.version>
         <lombok.version>1.18.28</lombok.version>
         <commons-logging.version>1.2</commons-logging.version>
-        <slf4j.version>2.0.3</slf4j.version>
+        <slf4j.version>2.0.7</slf4j.version>
         <beanutils.version>1.9.4</beanutils.version>
         <jjwt-version>0.11.5</jjwt-version>
         <commons-validator-version>1.7</commons-validator-version>
@@ -26,7 +26,7 @@
         <liquibase.version>4.23.0</liquibase.version>
         <liquibase-hibernate.version>4.22.0</liquibase-hibernate.version>
         <maven-surefire-plugin.version>3.0.0</maven-surefire-plugin.version>
-        <junit-jupiter.version>5.9.3</junit-jupiter.version>
+        <junit-jupiter.version>5.10.0</junit-jupiter.version>
         <instancio-version>2.13.0</instancio-version>
         <checkstyle-maven-plugin-version>3.2.1</checkstyle-maven-plugin-version>
         <checkstyle-version>9.0</checkstyle-version>
