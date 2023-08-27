@@ -4,7 +4,7 @@
 		"name": "Java Spring Boot Boilerplate",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "2079870",
-		"_collection_link": "https://lunar-capsule-667882.postman.co/workspace/Team-Workspace~4a00e7a1-03fc-466b-82c8-45cf6f1cd4c6/collection/2079870-29109c5f-13f2-4199-ad51-af8304d4efbf?action=share&creator=2079870&source=collection_link"
+		"_collection_link": "https://lunar-capsule-667882.postman.co/workspace/Team-Workspace~4a00e7a1-03fc-466b-82c8-45cf6f1cd4c6/collection/2079870-29109c5f-13f2-4199-ad51-af8304d4efbf?action=share&source=collection_link&creator=2079870"
 	},
 	"item": [
 		{
@@ -175,6 +175,131 @@
 							"path": [
 								"auth",
 								"refresh"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reset password link request",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = JSON.parse(responseBody);",
+									"pm.collectionVariables.set(\"token\", response.token);",
+									"pm.collectionVariables.set(\"refresh_token\", response.refreshToken);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"user@example.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base}}/auth/reset-password",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"auth",
+								"reset-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reset password check token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = JSON.parse(responseBody);",
+									"pm.collectionVariables.set(\"token\", response.token);",
+									"pm.collectionVariables.set(\"refresh_token\", response.refreshToken);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base}}/auth/reset-password/BHlN142htn6Ke9FQBBIRpIC1XkBBVyyU",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"auth",
+								"reset-password",
+								"BHlN142htn6Ke9FQBBIRpIC1XkBBVyyU"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reset password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = JSON.parse(responseBody);",
+									"pm.collectionVariables.set(\"token\", response.token);",
+									"pm.collectionVariables.set(\"refresh_token\", response.refreshToken);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"password\": \"P@sswd123.\",\n    \"passwordConfirm\": \"P@sswd123.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base}}/auth/reset-password/BHlN142htn6Ke9FQBBIRpIC1XkBBVyyU",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"auth",
+								"reset-password",
+								"BHlN142htn6Ke9FQBBIRpIC1XkBBVyyU"
 							]
 						}
 					},
