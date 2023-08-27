@@ -1,6 +1,7 @@
 package com.mewebstudio.javaspringbootboilerplate.service;
 
 import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.RegisterRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.ResetPasswordRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.user.AbstractBaseCreateUserRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.user.AbstractBaseUpdateUserRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.user.CreateUserRequest;
@@ -11,6 +12,7 @@ import com.mewebstudio.javaspringbootboilerplate.entity.specification.UserFilter
 import com.mewebstudio.javaspringbootboilerplate.entity.specification.criteria.PaginationCriteria;
 import com.mewebstudio.javaspringbootboilerplate.entity.specification.criteria.UserCriteria;
 import com.mewebstudio.javaspringbootboilerplate.event.UserEmailVerificationSendEvent;
+import com.mewebstudio.javaspringbootboilerplate.event.UserPasswordResetSendEvent;
 import com.mewebstudio.javaspringbootboilerplate.exception.BadRequestException;
 import com.mewebstudio.javaspringbootboilerplate.exception.NotFoundException;
 import com.mewebstudio.javaspringbootboilerplate.repository.UserRepository;
@@ -52,6 +54,8 @@ public class UserService {
     private final RoleService roleService;
 
     private final EmailVerificationTokenService emailVerificationTokenService;
+
+    private final PasswordResetTokenService passwordResetTokenService;
 
     private final ApplicationEventPublisher eventPublisher;
 
@@ -280,16 +284,17 @@ public class UserService {
      */
     public User updatePassword(UpdatePasswordRequest request) throws BindException {
         User user = getUser();
+        log.info("Updating password for user with email: {}", user.getEmail());
 
         BindingResult bindingResult = new BeanPropertyBindingResult(request, "request");
-        if (request.getOldPassword().equals(request.getPassword())) {
-            bindingResult.addError(new FieldError(bindingResult.getObjectName(), "password",
-                messageSourceService.get("same_password_error")));
-        }
-
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             bindingResult.addError(new FieldError(bindingResult.getObjectName(), "oldPassword",
                 messageSourceService.get("invalid_old_password")));
+        }
+
+        if (request.getOldPassword().equals(request.getPassword())) {
+            bindingResult.addError(new FieldError(bindingResult.getObjectName(), "password",
+                messageSourceService.get("same_password_error")));
         }
 
         if (bindingResult.hasErrors()) {
@@ -297,20 +302,40 @@ public class UserService {
         }
 
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        userRepository.save(user);
+        log.info("Password updated for user with email: {}", user.getEmail());
 
-        return userRepository.save(user);
+        return user;
+    }
+
+    /**
+     * Reset password.
+     *
+     * @param token String
+     * @param request ResetPasswordRequest
+     */
+    public void resetPassword(String token, ResetPasswordRequest request) {
+        User user = passwordResetTokenService.getUserByToken(token);
+        log.info("Resetting password for user with email: {}", user.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        userRepository.save(user);
+        passwordResetTokenService.deleteByUserId(user.getId());
+        log.info("Password reset for user with email: {}", user.getEmail());
     }
 
     /**
      * Resend e-mail verification mail.
      */
-    public void resentEmailVerificationMail() {
+    public void resendEmailVerificationMail() {
         User user = getUser();
+        log.info("Resending e-mail verification mail to email: {}", user.getEmail());
         if (user.getEmailVerifiedAt() != null) {
             throw new BadRequestException(messageSourceService.get("your_email_already_verified"));
         }
 
-        emailVerificationEventPublisher(getUser());
+        emailVerificationEventPublisher(user);
+        log.info("Resending e-mail verification mail to email: {}", user.getEmail());
     }
 
     /**
@@ -320,14 +345,27 @@ public class UserService {
      */
     public void verifyEmail(String token) {
         log.info("Verifying e-mail with token: {}", token);
-
         User user = emailVerificationTokenService.getUserByToken(token);
         user.setEmailVerifiedAt(LocalDateTime.now());
         userRepository.save(user);
 
         emailVerificationTokenService.deleteByUserId(user.getId());
-
         log.info("E-mail verified with token: {}", token);
+    }
+
+    /**
+     * Send password reset mail.
+     *
+     * @param email String
+     */
+    public void sendEmailPasswordResetMail(String email) {
+        log.info("Sending password reset mail to email: {}", email);
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new NotFoundException(messageSourceService.get("not_found_with_param",
+                new String[]{messageSourceService.get("user")})));
+
+        passwordResetEventPublisher(user);
+        log.info("Password reset mail sent to email: {}", email);
     }
 
     /**
@@ -417,5 +455,15 @@ public class UserService {
     protected void emailVerificationEventPublisher(User user) {
         user.setEmailVerificationToken(emailVerificationTokenService.create(user));
         eventPublisher.publishEvent(new UserEmailVerificationSendEvent(this, user));
+    }
+
+    /**
+     * Password reset event publisher.
+     *
+     * @param user User
+     */
+    private void passwordResetEventPublisher(User user) {
+        user.setPasswordResetToken(passwordResetTokenService.create(user));
+        eventPublisher.publishEvent(new UserPasswordResetSendEvent(this, user));
     }
 }

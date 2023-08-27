@@ -86,10 +86,12 @@ public class EmailVerificationTokenService {
      */
     public User getUserByToken(String token) {
         EmailVerificationToken emailVerificationToken = emailVerificationTokenRepository.findByToken(token)
-            .orElseThrow(() -> new NotFoundException(messageSourceService.get("verification_token_not_found")));
+            .orElseThrow(() -> new NotFoundException(messageSourceService.get("not_found_with_param",
+                new String[]{messageSourceService.get("token")})));
 
         if (isEmailVerificationTokenExpired(emailVerificationToken)) {
-            throw new BadRequestException(messageSourceService.get("verification_token_expired"));
+            throw new BadRequestException(messageSourceService.get("expired_with_param",
+                new String[]{messageSourceService.get("token")}));
         }
 
         return emailVerificationToken.getUser();

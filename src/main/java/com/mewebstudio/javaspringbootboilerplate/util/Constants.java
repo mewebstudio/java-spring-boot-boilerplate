@@ -14,6 +14,8 @@ public final class Constants {
 
     public static final int EMAIL_VERIFICATION_TOKEN_LENGTH = 64;
 
+    public static final int PASSWORD_RESET_TOKEN_LENGTH = 32;
+
     public static final String DATE_FORMAT = "yyyy-MM-dd";
 
     public static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";

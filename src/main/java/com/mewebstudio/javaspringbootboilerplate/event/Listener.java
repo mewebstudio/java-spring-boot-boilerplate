@@ -18,4 +18,11 @@ public class Listener {
             event.getUser().getEmail(), event.getUser().getId());
         mailSenderService.sendUserEmailVerification(event.getUser());
     }
+
+    @EventListener(UserPasswordResetSendEvent.class)
+    public void onUserPasswordResetSendEvent(UserPasswordResetSendEvent event) {
+        log.info("[User password reset mail send event listener] {} - {}",
+            event.getUser().getEmail(), event.getUser().getId());
+        mailSenderService.sendUserPasswordReset(event.getUser());
+    }
 }

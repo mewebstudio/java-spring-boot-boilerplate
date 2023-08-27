@@ -1,6 +1,5 @@
 package com.mewebstudio.javaspringbootboilerplate.dto.request.auth;
 
-import com.mewebstudio.javaspringbootboilerplate.dto.annotation.Password;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -15,7 +14,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoginRequest {
+public class PasswordRequest {
     @NotBlank(message = "{not_blank}")
     @Email(message = "{invalid_email}")
     @Schema(
@@ -26,23 +25,4 @@ public class LoginRequest {
         example = "mail@example.com"
     )
     private String email;
-
-    @NotBlank(message = "{not_blank}")
-    @Password(message = "{invalid_password}")
-    @Schema(
-        name = "password",
-        description = "Password of the user",
-        type = "String",
-        requiredMode = Schema.RequiredMode.REQUIRED,
-        example = "P@sswd123."
-    )
-    private String password;
-
-    @Schema(
-        name = "rememberMe",
-        description = "Remember option for refresh token",
-        type = "Boolean",
-        example = "true"
-    )
-    private Boolean rememberMe;
 }

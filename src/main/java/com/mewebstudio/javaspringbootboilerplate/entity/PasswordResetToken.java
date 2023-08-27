@@ -21,18 +21,18 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.Date;
 
-import static com.mewebstudio.javaspringbootboilerplate.util.Constants.EMAIL_VERIFICATION_TOKEN_LENGTH;
+import static com.mewebstudio.javaspringbootboilerplate.util.Constants.PASSWORD_RESET_TOKEN_LENGTH;
 
 @Entity
-@Table(name = "email_verification_tokens", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"token"}, name = "uk_email_verification_tokens_token")
+@Table(name = "password_reset_tokens", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"token"}, name = "uk_password_reset_tokens_token")
 })
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EmailVerificationToken extends AbstractBaseEntity {
+public class PasswordResetToken extends AbstractBaseEntity {
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(
@@ -43,7 +43,7 @@ public class EmailVerificationToken extends AbstractBaseEntity {
     )
     private User user;
 
-    @Column(name = "token", nullable = false, length = EMAIL_VERIFICATION_TOKEN_LENGTH)
+    @Column(name = "token", nullable = false, length = PASSWORD_RESET_TOKEN_LENGTH)
     private String token;
 
     @Column(name = "expiration_date", nullable = false)

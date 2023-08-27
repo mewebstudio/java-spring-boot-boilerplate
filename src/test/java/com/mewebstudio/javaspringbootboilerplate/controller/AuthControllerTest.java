@@ -1,12 +1,17 @@
 package com.mewebstudio.javaspringbootboilerplate.controller;
 
 import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.LoginRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.PasswordRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.RegisterRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.ResetPasswordRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.response.SuccessResponse;
+import com.mewebstudio.javaspringbootboilerplate.dto.response.auth.PasswordResetResponse;
 import com.mewebstudio.javaspringbootboilerplate.dto.response.auth.TokenResponse;
+import com.mewebstudio.javaspringbootboilerplate.entity.PasswordResetToken;
 import com.mewebstudio.javaspringbootboilerplate.entity.User;
 import com.mewebstudio.javaspringbootboilerplate.service.AuthService;
 import com.mewebstudio.javaspringbootboilerplate.service.MessageSourceService;
+import com.mewebstudio.javaspringbootboilerplate.service.PasswordResetTokenService;
 import com.mewebstudio.javaspringbootboilerplate.service.UserService;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
@@ -37,6 +42,9 @@ class AuthControllerTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private PasswordResetTokenService passwordResetTokenService;
 
     @Mock
     private MessageSourceService messageSourceService;
@@ -109,6 +117,58 @@ class AuthControllerTest {
         assertNotNull(response.getBody());
         assertEquals(tokenResponse, response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Test for reset password")
+    void given_whenResetPassword_thenAssertBody() {
+        // Given
+        String message = "Password reset successfully";
+        PasswordRequest request = Instancio.create(PasswordRequest.class);
+        doNothing().when(authService).resetPassword(request.getEmail());
+        when(messageSourceService.get("password_reset_link_sent")).thenReturn(message);
+        // When
+        ResponseEntity<SuccessResponse> response = authController.resetPassword(request);
+        // Then
+        assertNotNull(response);
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(message, response.getBody().getMessage());
+    }
+
+    @Test
+    @DisplayName("Test for check token for reset password")
+    void given_whenResetPasswordCheckToken_thenAssertBody() {
+        // Given
+        String token = "token";
+        PasswordResetToken passwordResetToken = Instancio.create(PasswordResetToken.class);
+        when(passwordResetTokenService.findByToken(token)).thenReturn(passwordResetToken);
+        // When
+        ResponseEntity<PasswordResetResponse> response = authController.resetPassword(token);
+        // Then
+        assertNotNull(response);
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(passwordResetToken.getToken(), response.getBody().getToken());
+        assertEquals(passwordResetToken.getUser().getEmail(), response.getBody().getUser().getEmail());
+    }
+
+    @Test
+    @DisplayName("Test for reset password with token")
+    void given_whenResetPasswordWithToken_thenAssertBody() {
+        // Given
+        String token = "token";
+        String message = "Password reset success successfully";
+        ResetPasswordRequest request = Instancio.create(ResetPasswordRequest.class);
+        when(messageSourceService.get("password_reset_success_successfully")).thenReturn(message);
+        doNothing().when(userService).resetPassword(token, request);
+        // When
+        ResponseEntity<SuccessResponse> response = authController.resetPassword(token, request);
+        // Then
+        assertNotNull(response);
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(message, response.getBody().getMessage());
     }
 
     @Test

@@ -82,6 +82,16 @@ public class AuthService {
     }
 
     /**
+     * Reset password by e-mail.
+     *
+     * @param email String
+     */
+    public void resetPassword(String email) {
+        log.info("Reset password request received: {}", email);
+        userService.sendEmailPasswordResetMail(email);
+    }
+
+    /**
      * Logout from bearer string by user.
      *
      * @param user   User

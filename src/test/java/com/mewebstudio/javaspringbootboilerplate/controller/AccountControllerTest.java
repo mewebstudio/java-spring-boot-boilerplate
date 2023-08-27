@@ -78,7 +78,7 @@ class AccountControllerTest {
     void given_whenResendEmailVerification_thenAssertBody() {
         // Given
         String message = "verification_email_sent";
-        doNothing().when(userService).resentEmailVerificationMail();
+        doNothing().when(userService).resendEmailVerificationMail();
         when(messageSourceService.get(message)).thenReturn(message);
         // When
         ResponseEntity<SuccessResponse> response = accountController.resendEmailVerificationMail();

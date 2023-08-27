@@ -1,10 +1,10 @@
 package com.mewebstudio.javaspringbootboilerplate.service;
 
-import com.mewebstudio.javaspringbootboilerplate.entity.EmailVerificationToken;
+import com.mewebstudio.javaspringbootboilerplate.entity.PasswordResetToken;
 import com.mewebstudio.javaspringbootboilerplate.entity.User;
 import com.mewebstudio.javaspringbootboilerplate.exception.BadRequestException;
 import com.mewebstudio.javaspringbootboilerplate.exception.NotFoundException;
-import com.mewebstudio.javaspringbootboilerplate.repository.EmailVerificationTokenRepository;
+import com.mewebstudio.javaspringbootboilerplate.repository.PasswordResetTokenRepository;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,61 +27,61 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @Tag("unit")
-@DisplayName("Unit tests for EmailVerificationTokenService")
-class EmailVerificationTokenServiceTest {
+@DisplayName("Unit tests for PasswordResetTokenService")
+class PasswordResetTokenServiceTest {
     @InjectMocks
-    private EmailVerificationTokenService emailVerificationTokenService;
+    private PasswordResetTokenService passwordResetTokenService;
 
     @Mock
-    private EmailVerificationTokenRepository emailVerificationTokenRepository;
+    private PasswordResetTokenRepository passwordResetTokenRepository;
 
     @Mock
     private MessageSourceService messageSourceService;
 
     private final User user = Instancio.create(User.class);
 
-    private final EmailVerificationToken token = Instancio.create(EmailVerificationToken.class);
+    private final PasswordResetToken token = Instancio.create(PasswordResetToken.class);
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        user.setEmailVerificationToken(token);
+        user.setPasswordResetToken(token);
         token.setExpirationDate(Date.from(Instant.now().plusSeconds(3600)));
         token.setUser(user);
 
-        lenient().when(emailVerificationTokenRepository.findByToken(anyString())).thenReturn(Optional.of(token));
-        lenient().when(emailVerificationTokenRepository.findByUserId(any(UUID.class))).thenReturn(Optional.of(token));
-        lenient().when(emailVerificationTokenRepository.save(any(EmailVerificationToken.class))).thenReturn(token);
+        lenient().when(passwordResetTokenRepository.findByToken(anyString())).thenReturn(Optional.of(token));
+        lenient().when(passwordResetTokenRepository.findByUserId(any(UUID.class))).thenReturn(Optional.of(token));
+        lenient().when(passwordResetTokenRepository.save(any(PasswordResetToken.class))).thenReturn(token);
         lenient().when(messageSourceService.get(anyString())).thenReturn("Error Message");
 
         // Set expiresIn value for the service instance
-        emailVerificationTokenService = new EmailVerificationTokenService(
-            emailVerificationTokenRepository,
+        passwordResetTokenService = new PasswordResetTokenService(
+            passwordResetTokenRepository,
             messageSourceService,
             3600L // Set the appropriate expiresIn value here
         );
     }
 
     @Nested
-    @DisplayName("Test class for isEmailVerificationTokenExpired scenarios")
-    class IsEmailVerificationTokenExpiredTest {
+    @DisplayName("Test class for isPasswordResetTokenExpired scenarios")
+    class IsPasswordResetTokenExpiredTest {
         @Test
         @DisplayName("Happy path")
-        void given_whenIsEmailVerificationTokenExpired_thenAssertBody() {
+        void given_whenIsPasswordResetTokenExpired_thenAssertBody() {
             // When
-            boolean isExpired = emailVerificationTokenService.isEmailVerificationTokenExpired(token);
+            boolean isExpired = passwordResetTokenService.isPasswordResetTokenExpired(token);
             // Then
             assertFalse(isExpired);
         }
 
         @Test
-        @DisplayName("Test isEmailVerificationTokenExpired with expired token")
-        void givenExpiredToken_whenIsEmailVerificationTokenExpired_thenTrue() {
+        @DisplayName("Test isPasswordResetTokenExpired with expired token")
+        void givenExpiredToken_whenIsPasswordResetTokenExpired_thenTrue() {
             // When
             token.setExpirationDate(Date.from(Instant.now().minusSeconds(3600))); // 1 hour ago
             // Then
-            boolean emailVerificationTokenExpired = emailVerificationTokenService.isEmailVerificationTokenExpired(token);
-            assertTrue(emailVerificationTokenExpired);
+            boolean passwordResetTokenExpired = passwordResetTokenService.isPasswordResetTokenExpired(token);
+            assertTrue(passwordResetTokenExpired);
         }
     }
 
@@ -89,36 +89,36 @@ class EmailVerificationTokenServiceTest {
     @DisplayName("Test class for create scenarios")
     class CreateTest {
         @Test
-        @DisplayName("Test create email verification token")
+        @DisplayName("Test create password reset token")
         void givenUser_whenCreate_thenTokenCreated() {
             // Given
-            when(emailVerificationTokenRepository.save(any(EmailVerificationToken.class))).thenReturn(token);
+            when(passwordResetTokenRepository.save(any(PasswordResetToken.class))).thenReturn(token);
             // When
-            EmailVerificationToken createdToken = emailVerificationTokenService.create(user);
+            PasswordResetToken createdToken = passwordResetTokenService.create(user);
             // Then
             assertNotNull(createdToken);
             assertEquals(user, createdToken.getUser());
             assertEquals(token.getToken(), createdToken.getToken());
             assertEquals(token.getExpirationDate(), createdToken.getExpirationDate());
 
-            verify(emailVerificationTokenRepository, times(1)).save(any(EmailVerificationToken.class));
+            verify(passwordResetTokenRepository, times(1)).save(any(PasswordResetToken.class));
         }
 
         @Test
-        @DisplayName("Test create email verification token")
+        @DisplayName("Test create password reset token")
         void givenUser_whenCreate_thenOldTokenNotPresentAndTokenCreated() {
             // Given
-            when(emailVerificationTokenRepository.findByUserId(any(UUID.class))).thenReturn(Optional.empty());
-            when(emailVerificationTokenRepository.save(any(EmailVerificationToken.class))).thenReturn(token);
+            when(passwordResetTokenRepository.findByUserId(any(UUID.class))).thenReturn(Optional.empty());
+            when(passwordResetTokenRepository.save(any(PasswordResetToken.class))).thenReturn(token);
             // When
-            EmailVerificationToken createdToken = emailVerificationTokenService.create(user);
+            PasswordResetToken createdToken = passwordResetTokenService.create(user);
             // Then
             assertNotNull(createdToken);
             assertEquals(user, createdToken.getUser());
             assertEquals(token.getToken(), createdToken.getToken());
             assertEquals(token.getExpirationDate(), createdToken.getExpirationDate());
 
-            verify(emailVerificationTokenRepository, times(1)).save(any(EmailVerificationToken.class));
+            verify(passwordResetTokenRepository, times(1)).save(any(PasswordResetToken.class));
         }
     }
 
@@ -131,13 +131,13 @@ class EmailVerificationTokenServiceTest {
         @DisplayName("Test getUserByToken with valid token")
         void givenValidToken_whenGetUserByToken_thenUserReturned() {
             // Given
-            when(emailVerificationTokenRepository.findByToken(anyString())).thenReturn(Optional.of(token));
+            when(passwordResetTokenRepository.findByToken(anyString())).thenReturn(Optional.of(token));
             // When
-            User retrievedUser = emailVerificationTokenService.getUserByToken(tokenValue);
+            User retrievedUser = passwordResetTokenService.getUserByToken(tokenValue);
             // Then
             assertNotNull(retrievedUser);
             assertEquals(user, retrievedUser);
-            verify(emailVerificationTokenRepository, times(1)).findByToken(anyString());
+            verify(passwordResetTokenRepository, times(1)).findByToken(anyString());
         }
 
         @Test
@@ -145,24 +145,24 @@ class EmailVerificationTokenServiceTest {
         void givenExpiredToken_whenGetUserByToken_thenBadRequestExceptionThrown() {
             // Given
             token.setExpirationDate(Date.from(Instant.now().minusSeconds(3600))); // 1 hour ago
-            when(emailVerificationTokenRepository.findByToken(anyString())).thenReturn(Optional.of(token));
+            when(passwordResetTokenRepository.findByToken(anyString())).thenReturn(Optional.of(token));
             // When
-            Executable executable = () -> emailVerificationTokenService.getUserByToken(tokenValue);
+            Executable executable = () -> passwordResetTokenService.getUserByToken(tokenValue);
             // Then
             assertThrows(BadRequestException.class, executable);
-            verify(emailVerificationTokenRepository, times(1)).findByToken(anyString());
+            verify(passwordResetTokenRepository, times(1)).findByToken(anyString());
         }
 
         @Test
         @DisplayName("Test getUserByToken with not found token")
         void givenNotFoundToken_whenGetUserByToken_thenNotFoundExceptionThrown() {
             // Given
-            when(emailVerificationTokenRepository.findByToken(anyString())).thenReturn(Optional.empty());
+            when(passwordResetTokenRepository.findByToken(anyString())).thenReturn(Optional.empty());
             // When
-            Executable executable = () -> emailVerificationTokenService.getUserByToken("nonExistentToken");
+            Executable executable = () -> passwordResetTokenService.getUserByToken("nonExistentToken");
             // Then
             assertThrows(NotFoundException.class, executable);
-            verify(emailVerificationTokenRepository, times(1)).findByToken(anyString());
+            verify(passwordResetTokenRepository, times(1)).findByToken(anyString());
         }
     }
 
@@ -170,10 +170,10 @@ class EmailVerificationTokenServiceTest {
     @DisplayName("Test deleteByUserId")
     void givenUserId_whenDeleteByUserId_thenTokenDeleted() {
         // Given
-        doNothing().when(emailVerificationTokenRepository).deleteByUserId(any(UUID.class));
+        doNothing().when(passwordResetTokenRepository).deleteByUserId(any(UUID.class));
         // When
-        emailVerificationTokenService.deleteByUserId(user.getId());
+        passwordResetTokenService.deleteByUserId(user.getId());
         // Then
-        verify(emailVerificationTokenRepository, times(1)).deleteByUserId(user.getId());
+        verify(passwordResetTokenRepository, times(1)).deleteByUserId(user.getId());
     }
 }

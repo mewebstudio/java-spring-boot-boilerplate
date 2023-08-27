@@ -29,6 +29,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @Tag("unit")
 @DisplayName("Unit tests for MailSenderService")
@@ -72,6 +73,8 @@ class MailSenderServiceTest {
     @Nested
     @DisplayName("Test class for sendUserEmailVerification scenarios")
     class SendUserEmailVerificationTest {
+        private final String subject = "Email Verification";
+
         @BeforeEach
         void setUp() {
             lenient().when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
@@ -81,6 +84,7 @@ class MailSenderServiceTest {
         @DisplayName("Test sendUserEmailVerification scenario")
         void given_whenSendUserEmailVerification_thenAssertBody() {
             // Given
+            when(messageSourceService.get("email_verification")).thenReturn(subject);
             doNothing().when(mailSender).send(any(MimeMessage.class));
             // When
             mailSenderService.sendUserEmailVerification(user);
@@ -94,9 +98,47 @@ class MailSenderServiceTest {
         @DisplayName("Test sendUserEmailVerification throw exception scenario")
         void given_whenSendUserEmailVerification_thenVerifyErrorHandling() {
             // Given
+            when(messageSourceService.get("email_verification")).thenReturn(subject);
             doThrow(new MailSendException("Mail send failed")).when(mailSender).send(mimeMessage);
             // When
             assertDoesNotThrow(() -> mailSenderService.sendUserEmailVerification(user));
+            // Then
+            // Verify that the error is handled gracefully in sendUserEmailVerification
+        }
+    }
+
+    @Nested
+    @DisplayName("Test class for sendUserPasswordReset scenarios")
+    class SendUserPasswordResetTest {
+        private final String subject = "Reset Password";
+
+        @BeforeEach
+        void setUp() {
+            lenient().when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+        }
+
+        @Test
+        @DisplayName("Test sendUserPasswordReset scenario")
+        void given_whenSendUserPasswordReset_thenAssertBody() {
+            // Given
+            when(messageSourceService.get("password_reset")).thenReturn(subject);
+            doNothing().when(mailSender).send(any(MimeMessage.class));
+            // When
+            mailSenderService.sendUserPasswordReset(user);
+            // Then
+            verify(templateEngine, times(1)).process(eq("mail/user-reset-password"),
+                any(Context.class));
+            verify(mailSender, times(1)).send(any(MimeMessage.class));
+        }
+
+        @Test
+        @DisplayName("Test sendUserPasswordReset throw exception scenario")
+        void given_whenSendUserPasswordReset_thenVerifyErrorHandling() {
+            // Given
+            when(messageSourceService.get("password_reset")).thenReturn(subject);
+            doThrow(new MailSendException("Mail send failed")).when(mailSender).send(mimeMessage);
+            // When
+            assertDoesNotThrow(() -> mailSenderService.sendUserPasswordReset(user));
             // Then
             // Verify that the error is handled gracefully in sendUserEmailVerification
         }

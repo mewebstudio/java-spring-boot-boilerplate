@@ -3,12 +3,17 @@ package com.mewebstudio.javaspringbootboilerplate.controller.integration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mewebstudio.javaspringbootboilerplate.controller.AuthController;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.LoginRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.PasswordRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.ResetPasswordRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.response.auth.TokenResponse;
+import com.mewebstudio.javaspringbootboilerplate.entity.PasswordResetToken;
+import com.mewebstudio.javaspringbootboilerplate.entity.User;
 import com.mewebstudio.javaspringbootboilerplate.exception.AppExceptionHandler;
 import com.mewebstudio.javaspringbootboilerplate.exception.NotFoundException;
 import com.mewebstudio.javaspringbootboilerplate.exception.RefreshTokenExpiredException;
 import com.mewebstudio.javaspringbootboilerplate.service.AuthService;
 import com.mewebstudio.javaspringbootboilerplate.service.MessageSourceService;
+import com.mewebstudio.javaspringbootboilerplate.service.PasswordResetTokenService;
 import com.mewebstudio.javaspringbootboilerplate.service.UserService;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,11 +62,16 @@ class AuthControllerMvcIT {
     private UserService userService;
 
     @MockBean
+    private PasswordResetTokenService passwordResetTokenService;
+
+    @MockBean
     private MessageSourceService messageSourceService;
 
     private MockMvc mockMvc;
 
     private final TokenResponse tokenResponse = Instancio.create(TokenResponse.class);
+
+    private final PasswordResetToken passwordResetToken = Instancio.create(PasswordResetToken.class);
 
     @BeforeEach
     void setUp() {
@@ -195,6 +205,180 @@ class AuthControllerMvcIT {
             RequestBuilder request = MockMvcRequestBuilders.get("/auth/refresh")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(TOKEN_HEADER, String.format("%s %s", TOKEN_TYPE, tokenResponse.getRefreshToken()));
+            ResultActions perform = mockMvc.perform(request);
+            // Then
+            perform.andExpect(status().isNotFound());
+        }
+    }
+
+    @Nested
+    @DisplayName("Test class for reset password scenarios")
+    class ResetPassword {
+        private final PasswordRequest passwordRequest = Instancio.create(PasswordRequest.class);
+
+        @BeforeEach
+        void setUp() {
+            passwordRequest.setEmail("mail@example.com");
+        }
+
+        @Test
+        @DisplayName("Should return 200 OK")
+        void given_whenResetPassword_thenAssertBody() throws Exception {
+            // Given
+            String message = "Password reset link sent to your e-mail address";
+            doNothing().when(authService).resetPassword(passwordRequest.getEmail());
+            when(messageSourceService.get("password_reset_link_sent")).thenReturn(message);
+            // When
+            RequestBuilder request = MockMvcRequestBuilders.post("/auth/reset-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(passwordRequest));
+            ResultActions perform = mockMvc.perform(request);
+            // Then
+            perform.andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value(message));
+        }
+
+        @Test
+        @DisplayName("Should throw BindException")
+        void given_whenResetPassword_thenShouldThrowBindException() throws Exception {
+            // Given
+            passwordRequest.setEmail("invalid-email");
+            doThrow(Instancio.create(NotFoundException.class)).when(authService)
+                .resetPassword(passwordRequest.getEmail());
+            // When
+            RequestBuilder request = MockMvcRequestBuilders.post("/auth/reset-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(passwordRequest));
+            ResultActions perform = mockMvc.perform(request);
+            // Then
+            perform.andExpect(status().isUnprocessableEntity());
+        }
+
+        @Test
+        @DisplayName("Should throw NotFoundException")
+        void given_whenResetPassword_thenShouldThrowNotFoundException() throws Exception {
+            // Given
+            doThrow(Instancio.create(NotFoundException.class)).when(authService)
+                .resetPassword(passwordRequest.getEmail());
+            // When
+            RequestBuilder request = MockMvcRequestBuilders.post("/auth/reset-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(passwordRequest));
+            ResultActions perform = mockMvc.perform(request);
+            // Then
+            perform.andExpect(status().isNotFound());
+        }
+    }
+
+    @Nested
+    @DisplayName("Test class for check token scenarios")
+    class ResetPasswordCheckTokenTest {
+        @Test
+        @DisplayName("Should return 200 OK")
+        void given_whenResetPasswordCheckToken_thenAssertBody() throws Exception {
+            // Given
+            when(passwordResetTokenService.findByToken(passwordResetToken.getToken())).thenReturn(passwordResetToken);
+            // When
+            RequestBuilder request = MockMvcRequestBuilders
+                .get("/auth/reset-password/" + passwordResetToken.getToken());
+            ResultActions perform = mockMvc.perform(request);
+            // Then
+            perform.andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(passwordResetToken.getId().toString()))
+                .andExpect(jsonPath("$.token").value(passwordResetToken.getToken()))
+                .andExpect(jsonPath("$.expirationDate")
+                    .value(passwordResetToken.getExpirationDate()));
+        }
+
+        @Test
+        @DisplayName("Should throw NotFoundException")
+        void given_whenResetPasswordCheckToken_thenShouldThrowNotFoundException() throws Exception {
+            // Given
+            when(passwordResetTokenService.findByToken(passwordResetToken.getToken()))
+                .thenThrow(Instancio.create(NotFoundException.class));
+            // When
+            RequestBuilder request = MockMvcRequestBuilders
+                .get("/auth/reset-password/" + passwordResetToken.getToken());
+            ResultActions perform = mockMvc.perform(request);
+            // Then
+            perform.andExpect(status().isNotFound());
+        }
+    }
+
+    @Nested
+    @DisplayName("Test class for reset password with token scenarios")
+    class ResetPasswordWithTokenTest {
+        private final ResetPasswordRequest resetPasswordRequest = Instancio.create(ResetPasswordRequest.class);
+
+        @BeforeEach
+        void setUp() {
+            resetPasswordRequest.setPassword("newPassword123.");
+            resetPasswordRequest.setPasswordConfirm("newPassword123.");
+        }
+
+        @Test
+        @DisplayName("Should return 200 OK")
+        void given_whenResetPasswordWithToken_thenAssertBody() throws Exception {
+            // Given
+            String message = "Password reset successfully";
+            doNothing().when(userService).resetPassword(passwordResetToken.getToken(), resetPasswordRequest);
+            when(messageSourceService.get("password_reset_success_successfully")).thenReturn(message);
+            // When
+            RequestBuilder request = MockMvcRequestBuilders
+                .post("/auth/reset-password/" + passwordResetToken.getToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(resetPasswordRequest));
+            ResultActions perform = mockMvc.perform(request);
+            // Then
+            perform.andExpect(status().isOk()).andExpect(jsonPath("$.message").value(message));
+        }
+
+        @Test
+        @DisplayName("Should throw BindException")
+        void given_whenResetPasswordWithToken_thenShouldThrowBindException() throws Exception {
+            // Given
+            resetPasswordRequest.setPasswordConfirm("wrongPassword");
+            doThrow(Instancio.create(NotFoundException.class)).when(userService)
+                .resetPassword(passwordResetToken.getToken(), resetPasswordRequest);
+            // When
+            RequestBuilder request = MockMvcRequestBuilders
+                .post("/auth/reset-password/" + passwordResetToken.getToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(resetPasswordRequest));
+            ResultActions perform = mockMvc.perform(request);
+            // Then
+            perform.andExpect(status().isUnprocessableEntity());
+        }
+    }
+
+    @Nested
+    @DisplayName("Test class for logout scenarios")
+    class LogoutTest {
+        private final User user = Instancio.create(User.class);
+
+        @Test
+        @DisplayName("Should return 200 OK")
+        void given_whenLogout_thenAssertBody() throws Exception {
+            // Given
+            String message = "Logout successfully";
+            when(userService.getUser()).thenReturn(user);
+            doNothing().when(authService).logout(user);
+            when(messageSourceService.get("logout_successfully")).thenReturn(message);
+            // When
+            RequestBuilder request = MockMvcRequestBuilders.get("/auth/logout");
+            ResultActions perform = mockMvc.perform(request);
+            // Then
+            perform.andExpect(status().isOk()).andExpect(jsonPath("$.message").value(message));
+        }
+
+        @Test
+        @DisplayName("Should throw BadCredentialsException")
+        void given_whenLogout_thenShouldThrowBadCredentialsException() throws Exception {
+            // Given
+            when(userService.getUser()).thenReturn(user);
+            doThrow(Instancio.create(NotFoundException.class)).when(authService).logout(user);
+            // When
+            RequestBuilder request = MockMvcRequestBuilders.get("/auth/logout");
             ResultActions perform = mockMvc.perform(request);
             // Then
             perform.andExpect(status().isNotFound());

@@ -91,9 +91,40 @@ public class MailSenderService {
             send(new InternetAddress(senderAddress, appName), new InternetAddress(user.getEmail(), user.getName()),
                 subject, templateEngine.process("mail/user-email-verification", ctx));
 
-            log.info(String.format("[EmailService] Sent verification e-mail: %s - %s", user.getId(), user.getEmail()));
+            log.info(String.format("[EmailService] Sent verification e-mail: %s - %s",
+                user.getId(), user.getEmail()));
         } catch (UnsupportedEncodingException | MessagingException | MailException e) {
             log.error(String.format("[EmailService] Failed to send verification e-mail: %s", e.getMessage()));
+        }
+    }
+
+    /**
+     * Send user password reset link.
+     *
+     * @param user User
+     */
+    public void sendUserPasswordReset(User user) {
+        try {
+            log.info(String.format("[EmailService] Sending reset password e-mail: %s - %s - %s",
+                user.getId(), user.getEmail(), user.getPasswordResetToken().getToken()));
+
+            String url = String.format("%s/auth/password/%s", frontendUrl,
+                user.getPasswordResetToken().getToken());
+
+            final Context ctx = createContext();
+            ctx.setVariable(NAME, user.getName());
+            ctx.setVariable(LAST_NAME, user.getLastName());
+            ctx.setVariable("fullName", user.getFullName());
+            ctx.setVariable(URL, url);
+
+            String subject = messageSourceService.get("password_reset");
+            send(new InternetAddress(senderAddress, appName), new InternetAddress(user.getEmail(), user.getName()),
+                subject, templateEngine.process("mail/user-reset-password", ctx));
+
+            log.info(String.format("[EmailService] Sent reset password e-mail: %s - %s",
+                user.getId(), user.getEmail()));
+        } catch (UnsupportedEncodingException | MessagingException | MailException e) {
+            log.error(String.format("[EmailService] Failed to send reset password e-mail: %s", e.getMessage()));
         }
     }
 

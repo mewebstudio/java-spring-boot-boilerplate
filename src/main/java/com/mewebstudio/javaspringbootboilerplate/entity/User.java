@@ -81,6 +81,9 @@ public class User extends AbstractBaseEntity {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private EmailVerificationToken emailVerificationToken;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private PasswordResetToken passwordResetToken;
+
     @Column(name = "email_verified_at")
     private LocalDateTime emailVerifiedAt;
 

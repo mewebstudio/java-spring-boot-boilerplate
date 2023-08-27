@@ -137,7 +137,7 @@ public class AccountController extends AbstractBaseController {
         }
     )
     public ResponseEntity<SuccessResponse> resendEmailVerificationMail() {
-        userService.resentEmailVerificationMail();
+        userService.resendEmailVerificationMail();
 
         return ResponseEntity.ok(SuccessResponse.builder()
             .message(messageSourceService.get("verification_email_sent"))

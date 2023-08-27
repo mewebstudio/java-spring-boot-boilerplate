@@ -32,6 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -203,6 +205,33 @@ class AuthServiceTest {
             assertNotNull(response);
             assertEquals("newToken", response.getToken());
             assertEquals("newRefresh", response.getRefreshToken());
+        }
+    }
+
+    @Nested
+    @DisplayName("Test class for resetPassword scenarios")
+    class ResetPasswordTest {
+        @Test
+        @DisplayName("Test for successful resetPassword")
+        void given_whenResetPassword_thenAssertBody() {
+            // Given
+            doNothing().when(userService).sendEmailPasswordResetMail(user.getEmail());
+            // When
+            authService.resetPassword(user.getEmail());
+            // Then
+            verify(userService, times(1)).sendEmailPasswordResetMail(user.getEmail());
+        }
+
+        @Test
+        @DisplayName("Test for not found error resetPassword")
+        void given_whenResetPassword_thenShouldThrowNotFoundException() {
+            // Given
+            String message = messageSourceService.get("not_found_with_param", new String[]{"email"});
+            doThrow(new NotFoundException(message)).when(userService).sendEmailPasswordResetMail(user.getEmail());
+            // When
+            Executable executable = () -> authService.resetPassword(user.getEmail());
+            // Then
+            assertThrows(NotFoundException.class, executable);
         }
     }
 

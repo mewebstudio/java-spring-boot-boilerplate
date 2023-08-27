@@ -1,13 +1,18 @@
 package com.mewebstudio.javaspringbootboilerplate.service;
 
 import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.RegisterRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.ResetPasswordRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.user.CreateUserRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdatePasswordRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdateUserRequest;
+import com.mewebstudio.javaspringbootboilerplate.entity.PasswordResetToken;
 import com.mewebstudio.javaspringbootboilerplate.entity.User;
 import com.mewebstudio.javaspringbootboilerplate.entity.specification.UserFilterSpecification;
 import com.mewebstudio.javaspringbootboilerplate.entity.specification.criteria.PaginationCriteria;
 import com.mewebstudio.javaspringbootboilerplate.entity.specification.criteria.UserCriteria;
+import com.mewebstudio.javaspringbootboilerplate.event.UserEmailVerificationSendEvent;
+import com.mewebstudio.javaspringbootboilerplate.event.UserPasswordResetSendEvent;
+import com.mewebstudio.javaspringbootboilerplate.exception.BadRequestException;
 import com.mewebstudio.javaspringbootboilerplate.exception.NotFoundException;
 import com.mewebstudio.javaspringbootboilerplate.repository.UserRepository;
 import com.mewebstudio.javaspringbootboilerplate.security.JwtUserDetails;
@@ -45,7 +50,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @Tag("unit")
@@ -66,6 +74,9 @@ class UserServiceTest {
 
     @Mock
     private EmailVerificationTokenService emailVerificationTokenService;
+
+    @Mock
+    private PasswordResetTokenService passwordResetTokenService;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -107,8 +118,21 @@ class UserServiceTest {
         }
 
         @Test
+        @DisplayName("When not authenticated")
+        void given_whenGetUserNotAuthenticated_thenShouldThrowBadCredentialsException() {
+            // Given
+            when(authentication.isAuthenticated()).thenReturn(false);
+            // When
+            Executable executable = () -> userService.getUser();
+            // Then
+            assertThrows(BadCredentialsException.class, executable);
+        }
+
+        @Test
         @DisplayName("When user not found")
-        void given_whenGetUser_thenAssertBadCredentialsException() {
+        void given_whenGetUserNotFound_thenShouldThrowBadCredentialsException() {
+            // Given
+            when(userRepository.findById(UUID.fromString(jwtUserDetails.getId()))).thenReturn(Optional.empty());
             // When
             Executable executable = () -> userService.getUser();
             // Then
@@ -159,7 +183,7 @@ class UserServiceTest {
     }
 
     @Nested
-    @DisplayName("Test class for class findById scenarios")
+    @DisplayName("Test class for findById scenarios")
     class FindByIdTest {
         @Test
         @DisplayName("Happy path")
@@ -191,7 +215,7 @@ class UserServiceTest {
     }
 
     @Nested
-    @DisplayName("Test class for class findByEmail scenarios")
+    @DisplayName("Test class for findByEmail scenarios")
     class FindByEmailTest {
         @Test
         @DisplayName("Happy path")
@@ -223,7 +247,7 @@ class UserServiceTest {
     }
 
     @Nested
-    @DisplayName("Test class for class loadUserByEmail scenarios")
+    @DisplayName("Test class for loadUserByEmail scenarios")
     class LoadUserByEmailTest {
         @Test
         @DisplayName("Happy path")
@@ -251,7 +275,7 @@ class UserServiceTest {
     }
 
     @Nested
-    @DisplayName("Test class for class loadUserById scenarios")
+    @DisplayName("Test class for loadUserById scenarios")
     class LoadUserByIdTest {
         @Test
         @DisplayName("Happy path")
@@ -292,7 +316,7 @@ class UserServiceTest {
     }
 
     @Nested
-    @DisplayName("Test class for class register scenarios")
+    @DisplayName("Test class for register scenarios")
     class RegisterTest {
         @Test
         @DisplayName("Happy path")
@@ -322,7 +346,7 @@ class UserServiceTest {
     }
 
     @Nested
-    @DisplayName("Test class for class create scenarios")
+    @DisplayName("Test class for create scenarios")
     class CreateTest {
         @Test
         @DisplayName("Happy path")
@@ -357,7 +381,7 @@ class UserServiceTest {
     }
 
     @Nested
-    @DisplayName("Test class for class update scenarios")
+    @DisplayName("Test class for update scenarios")
     class UpdateTest {
         private final UpdateUserRequest request = Instancio.create(UpdateUserRequest.class);
 
@@ -396,10 +420,10 @@ class UserServiceTest {
     }
 
     @Nested
-    @DisplayName("Test class for class update password scenarios")
+    @DisplayName("Test class for update password scenarios")
     class UpdatePasswordTest {
         @Test
-        @DisplayName("Test class for class update password scenarios")
+        @DisplayName("Happy path")
         void given_whenUpdatePassword_thenAssertBody() throws BindException {
             // Given
             UpdatePasswordRequest request = Instancio.create(UpdatePasswordRequest.class);
@@ -417,12 +441,13 @@ class UserServiceTest {
         }
 
         @Test
-        @DisplayName("Test class for class update password scenarios")
-        void given_whenUpdatePassword_thenBindingException() {
+        @DisplayName("Wrong old password test")
+        void given_whenUpdatePasswordWrongOldPassword_thenBindingException() {
             // Given
             UpdatePasswordRequest request = Instancio.create(UpdatePasswordRequest.class);
             request.setOldPassword("OldP@ssw0rd123.");
-            request.setPassword("OldP@ssw0rd123.");
+            request.setPassword("NewP@ssw0rd123.");
+            when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
             when(userRepository.findById(UUID.fromString(jwtUserDetails.getId()))).thenReturn(Optional.of(user));
             // When
             Executable executable = () -> userService.updatePassword(Instancio.create(UpdatePasswordRequest.class));
@@ -432,7 +457,147 @@ class UserServiceTest {
     }
 
     @Nested
-    @DisplayName("Test class for class delete scenarios")
+    @DisplayName("Test class for reset password scenarios")
+    class ResetPasswordTest {
+        private final ResetPasswordRequest request = Instancio.create(ResetPasswordRequest.class);
+
+        @Test
+        @DisplayName("Happy path")
+        void given_whenResetPassword_thenAssertBody() {
+            // Given
+            when(passwordResetTokenService.getUserByToken(any(String.class))).thenReturn(user);
+            when(passwordEncoder.encode(any(String.class))).thenReturn("encodedPassword");
+            when(userRepository.save(any(User.class))).thenReturn(user);
+            doNothing().when(passwordResetTokenService).deleteByUserId(any(UUID.class));
+            // When
+            String token = "token";
+            userService.resetPassword(token, request);
+            // Then
+            verify(passwordResetTokenService, Mockito.times(1)).deleteByUserId(user.getId());
+        }
+    }
+
+    @Nested
+    @DisplayName("Test class for resend e-mail verification scenarios")
+    class ResentEmailVerificationMailTest {
+        @Test
+        @DisplayName("Happy path")
+        void given_whenResendEmailVerificationMail_thenAssertBody() {
+            // Given
+            user.setEmailVerifiedAt(null);
+            when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(user));
+            doNothing().when(eventPublisher).publishEvent(any(UserEmailVerificationSendEvent.class));
+            // When
+            userService.resendEmailVerificationMail();
+            // Then
+            verify(eventPublisher, Mockito.times(1))
+                .publishEvent(any(UserEmailVerificationSendEvent.class));
+        }
+
+        @Test
+        @DisplayName("Not authenticated test")
+        void given_whenResendEmailVerificationMail_thenAssertBadCredentialsException() {
+            // Given
+            when(userRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
+            // When
+            Executable executable = () -> userService.resendEmailVerificationMail();
+            // Then
+            assertThrows(BadCredentialsException.class, executable);
+        }
+
+        @Test
+        @DisplayName("E-mail already verified test")
+        void given_whenResendEmailVerificationMail_thenAssertBadRequestException() {
+            // Given
+            when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(user));
+            // When
+            Executable executable = () -> userService.resendEmailVerificationMail();
+            // Then
+            assertThrows(BadRequestException.class, executable);
+        }
+    }
+
+    @Nested
+    @DisplayName("Test class for verify e-mail scenarios")
+    class VerifyEmail {
+        private final String token = "token";
+
+        @Test
+        @DisplayName("Happy path")
+        void given_whenVerifyEmail_thenAssertBody() {
+            // Given
+            when(emailVerificationTokenService.getUserByToken(token)).thenReturn(user);
+            user.setEmailVerifiedAt(LocalDateTime.now());
+            when(userRepository.save(user)).thenReturn(user);
+            doNothing().when(emailVerificationTokenService).deleteByUserId(user.getId());
+            // When
+            userService.verifyEmail(token);
+            // Then
+            verify(userRepository, Mockito.times(1)).save(user);
+            verify(emailVerificationTokenService, Mockito.times(1)).deleteByUserId(user.getId());
+        }
+
+        @Test
+        @DisplayName("Token not found test")
+        void given_whenVerifyEmail_thenShouldThrowNotFoundException() {
+            // Given
+            when(emailVerificationTokenService.getUserByToken(token)).thenThrow(NotFoundException.class);
+            // When
+            Executable executable = () -> userService.verifyEmail(token);
+            // Then
+            assertThrows(NotFoundException.class, executable);
+        }
+
+        @Test
+        @DisplayName("Token expired test")
+        void given_whenVerifyEmail_thenShouldThrowBadRequestException() {
+            // Given
+            when(emailVerificationTokenService.getUserByToken(token)).thenThrow(BadRequestException.class);
+            // When
+            Executable executable = () -> userService.verifyEmail(token);
+            // Then
+            assertThrows(BadRequestException.class, executable);
+        }
+    }
+
+    @Nested
+    @DisplayName("Test class for send password reset e-mail scenarios")
+    class SendEmailPasswordResetMailTest {
+        private final PasswordResetToken passwordResetToken = Instancio.create(PasswordResetToken.class);
+
+        @BeforeEach
+        void setUp() {
+            passwordResetToken.setUser(user);
+        }
+
+        @Test
+        @DisplayName("Happy path")
+        void given_whenSendEmailPasswordResetMail_thenAssertBody() {
+            // Given
+            when(userRepository.findByEmail(any(String.class))).thenReturn(Optional.of(user));
+            doNothing().when(eventPublisher).publishEvent(any(UserPasswordResetSendEvent.class));
+            when(passwordResetTokenService.create(any(User.class))).thenReturn(user.getPasswordResetToken());
+            // When
+            userService.sendEmailPasswordResetMail(user.getEmail());
+            // Then
+            verify(eventPublisher, Mockito.times(1))
+                .publishEvent(any(UserPasswordResetSendEvent.class));
+        }
+
+        @Test
+        @DisplayName("User not found test")
+        void given_whenSendEmailPasswordResetMail_thenShouldThrowNotFoundException() {
+            // Given
+            when(userRepository.findByEmail(any(String.class))).thenReturn(Optional.empty());
+            // When
+            Executable executable = () -> userService.sendEmailPasswordResetMail(user.getEmail());
+            // Then
+            assertThrows(NotFoundException.class, executable);
+        }
+    }
+
+    @Nested
+    @DisplayName("Test class for delete scenarios")
     class DeleteTest {
         @Test
         @DisplayName("Happy path")
@@ -442,7 +607,7 @@ class UserServiceTest {
             // When
             userService.delete(user.getId().toString());
             // Then
-            Mockito.verify(userRepository, Mockito.times(1)).delete(user);
+            verify(userRepository, Mockito.times(1)).delete(user);
         }
 
         @Test
