@@ -21,7 +21,7 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.i18n.SessionLocaleResolver;
+import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.templatemode.TemplateMode;
@@ -41,7 +41,7 @@ public class AppConfig {
      */
     @Bean
     public LocaleResolver localeResolver(@Value("${app.default-locale:en}") final String defaultLocale) {
-        SessionLocaleResolver localResolver = new SessionLocaleResolver();
+        AcceptHeaderLocaleResolver localResolver = new AcceptHeaderLocaleResolver();
         localResolver.setDefaultLocale(new Locale.Builder().setLanguage(defaultLocale).build());
 
         return localResolver;

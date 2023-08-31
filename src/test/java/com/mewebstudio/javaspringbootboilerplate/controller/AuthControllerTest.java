@@ -74,7 +74,7 @@ class AuthControllerTest {
     @DisplayName("Test for register")
     void given_whenRegister_thenAssertBody() throws BindException {
         // Given
-        String message = "registered";
+        String message = "registered_successfully";
         RegisterRequest loginRequest = Instancio.create(RegisterRequest.class);
         when(userService.register(loginRequest)).thenReturn(user);
         when(messageSourceService.get(message)).thenReturn(message);

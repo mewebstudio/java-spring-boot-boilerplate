@@ -114,7 +114,8 @@ public class AuthController extends AbstractBaseController {
     ) throws BindException {
         userService.register(request);
 
-        return ResponseEntity.ok(SuccessResponse.builder().message(messageSourceService.get("registered")).build());
+        return ResponseEntity.ok(SuccessResponse.builder().message(messageSourceService.get("registered_successfully"))
+            .build());
     }
 
     @GetMapping("/email-verification/{token}")
