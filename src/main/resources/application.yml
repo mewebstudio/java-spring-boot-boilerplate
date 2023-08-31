@@ -23,6 +23,7 @@ app:
       token:
         expires-in: ${APP_REGISTRATION_PASSWORD_TOKEN_EXPIRES_IN:#{60 * 60 * 1000}} # 60 minutes in milliseconds
   default-locale: ${APP_DEFAULT_LOCALE:en}
+  default-timezone: ${APP_DEFAULT_TIMEZONE:Europe/Istanbul}
   url: ${APP_URL:http://localhost:${server.port}}
   frontend-url: ${APP_FRONTEND_URL:http://localhost:3000}
 

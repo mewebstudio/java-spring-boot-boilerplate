@@ -28,6 +28,7 @@ import org.thymeleaf.templatemode.TemplateMode;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import static com.mewebstudio.javaspringbootboilerplate.util.Constants.SECURITY_SCHEME_NAME;
 
@@ -40,9 +41,11 @@ public class AppConfig {
      * @return LocaleResolver
      */
     @Bean
-    public LocaleResolver localeResolver(@Value("${app.default-locale:en}") final String defaultLocale) {
+    public LocaleResolver localeResolver(@Value("${app.default-locale:en}") final String defaultLocale,
+                                         @Value("${app.default-timezone:UTC}") final String defaultTimezone) {
         AcceptHeaderLocaleResolver localResolver = new AcceptHeaderLocaleResolver();
         localResolver.setDefaultLocale(new Locale.Builder().setLanguage(defaultLocale).build());
+        TimeZone.setDefault(TimeZone.getTimeZone(defaultTimezone));
 
         return localResolver;
     }
