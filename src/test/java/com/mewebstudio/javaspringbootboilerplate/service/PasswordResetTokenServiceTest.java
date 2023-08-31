@@ -66,7 +66,7 @@ class PasswordResetTokenServiceTest {
     @DisplayName("Test class for isPasswordResetTokenExpired scenarios")
     class IsPasswordResetTokenExpiredTest {
         @Test
-        @DisplayName("Happy path")
+        @DisplayName("Test isPasswordResetTokenExpired with valid token")
         void given_whenIsPasswordResetTokenExpired_thenAssertBody() {
             // When
             boolean isExpired = passwordResetTokenService.isPasswordResetTokenExpired(token);
@@ -119,6 +119,35 @@ class PasswordResetTokenServiceTest {
             assertEquals(token.getExpirationDate(), createdToken.getExpirationDate());
 
             verify(passwordResetTokenRepository, times(1)).save(any(PasswordResetToken.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("Test class for findByToken scenarios")
+    class FindByTokenTest {
+        @Test
+        @DisplayName("Test findByToken with valid token")
+        void givenValidToken_whenFindByToken_thenTokenReturned() {
+            // Given
+            when(passwordResetTokenRepository.findByToken(anyString())).thenReturn(Optional.of(token));
+            // When
+            PasswordResetToken retrievedToken = passwordResetTokenService.findByToken(token.getToken());
+            // Then
+            assertNotNull(retrievedToken);
+            assertEquals(token, retrievedToken);
+            verify(passwordResetTokenRepository, times(1)).findByToken(anyString());
+        }
+
+        @Test
+        @DisplayName("Test findByToken with not found token")
+        void givenNotFoundToken_whenFindByToken_thenNotFoundExceptionThrown() {
+            // Given
+            when(passwordResetTokenRepository.findByToken(anyString())).thenReturn(Optional.empty());
+            // When
+            Executable executable = () -> passwordResetTokenService.findByToken("nonExistentToken");
+            // Then
+            assertThrows(NotFoundException.class, executable);
+            verify(passwordResetTokenRepository, times(1)).findByToken(anyString());
         }
     }
 

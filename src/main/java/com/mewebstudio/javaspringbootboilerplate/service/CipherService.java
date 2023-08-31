@@ -43,12 +43,7 @@ public class CipherService {
      * @throws RuntimeException Encrypting exception
      */
     public String encrypt(String plainText) {
-        try {
-            return encrypt(plainText, appSecret);
-        } catch (Exception e) {
-            log.error("Encrypting error", e);
-            throw new CipherException(e);
-        }
+        return encrypt(plainText, appSecret);
     }
 
     /**
@@ -76,11 +71,6 @@ public class CipherService {
      * @throws RuntimeException Decrypting exception
      */
     public String decrypt(String encryptedText) {
-        try {
-            return decrypt(encryptedText, appSecret);
-        } catch (Exception e) {
-            log.error("Decrypting error", e);
-            throw new CipherException(e);
-        }
+        return decrypt(encryptedText, appSecret);
     }
 }

@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -51,29 +52,49 @@ class InterceptorServiceTest {
         handlerMethod = new HandlerMethod(new TestController(), "validMethodName");
     }
 
-    @Test
-    @DisplayName("Test preHandle method with valid authorization")
-    void testPreHandleValidAuthorization() {
-        // Given
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        MockHttpServletResponse response = new MockHttpServletResponse();
-        when(authenticationService.getPrincipal()).thenReturn(jwtUserDetails);
-        // When
-        boolean result = interceptorService.preHandle(request, response, handlerMethod);
-        // Then
-        assertTrue(result);
+    @Nested
+    @DisplayName("Test class for preHandle method scenarios")
+    class PreHandleTest {
+        @Test
+        @DisplayName("Test preHandle method with valid authorization")
+        void testPreHandleValidAuthorization() {
+            // Given
+            MockHttpServletRequest request = new MockHttpServletRequest();
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            when(authenticationService.getPrincipal()).thenReturn(jwtUserDetails);
+            // When
+            boolean result = interceptorService.preHandle(request, response, handlerMethod);
+            // Then
+            assertTrue(result);
+        }
+
+        @Test
+        @DisplayName("Test preHandle method with invalid handler")
+        void testPreHandleInvalidHandler() {
+            // Given
+            Object invalidHandler = new Object();
+            // When
+            boolean result = interceptorService.preHandle(request, response, invalidHandler);
+            // Then
+            assertTrue(result);
+            verify(authenticationService, never()).getPrincipal();
+            verify(authenticationService, never()).isAuthorized(anyString());
+        }
     }
 
-    @Test
-    @DisplayName("Test preHandle method with invalid handler")
-    void testPreHandleInvalidHandler() {
-        // Given
-        Object invalidHandler = new Object();
-        // When
-        boolean result = interceptorService.preHandle(request, response, invalidHandler);
-        // Then
-        assertTrue(result);
-        verify(authenticationService, never()).getPrincipal();
-        verify(authenticationService, never()).isAuthorized(anyString());
+    @Nested
+    @DisplayName("Test class for validateQueryParams method scenarios")
+    class ValidateQueryParamsTest {
+        @Test
+        @DisplayName("Test validateQueryParams method with valid query params")
+        void testValidateQueryParamsValidQueryParams() {
+            // Given
+            MockHttpServletRequest request = new MockHttpServletRequest();
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            // When
+            boolean result = interceptorService.preHandle(request, response, handlerMethod);
+            // Then
+            assertTrue(result);
+        }
     }
 }
