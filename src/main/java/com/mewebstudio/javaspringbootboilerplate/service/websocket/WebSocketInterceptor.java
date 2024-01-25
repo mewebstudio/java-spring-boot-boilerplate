@@ -25,7 +25,7 @@ public class WebSocketInterceptor extends HttpSessionHandshakeInterceptor {
                                    @NonNull WebSocketHandler wsHandler, @NonNull Map<String, Object> attributes) {
         log.debug("Received an incoming websocket channel request");
         String token = getTokenFromPath(request.getURI().getPath());
-        if (token == null || !jwtTokenProvider.validateToken(token)) {
+        if (token == null || !jwtTokenProvider.validateToken(token, false)) {
             log.error("Invalid token or token not present in WebSocket request");
             return false;
         }

@@ -97,10 +97,18 @@ public class WebsocketChannelHandler extends AbstractWebSocketHandler {
             }
             WsRequestBody requestBody = objectMapper.readValue(message.getPayload(), WsRequestBody.class);
             requestBody.setFrom(websocketIdentifier.getUserId());
+            if (requestBody.getType() == null) {
+                String messageTypeShouldBeProvided = "Message type should be provided";
+                log.error(messageTypeShouldBeProvided);
+                session.sendMessage(new TextMessage(messageTypeShouldBeProvided));
+                throw new BadRequestException(messageTypeShouldBeProvided);
+            }
             if (requestBody.getType().equals("private")) {
                 webSocketCacheService.sendPrivateMessage(requestBody);
             } else {
-                log.error("Invalid ws message type: {}", requestBody.getType());
+                String messageTypeShouldBeProvided = "Invalid ws message type: " + requestBody.getType();
+                log.error(messageTypeShouldBeProvided);
+                session.sendMessage(new TextMessage(messageTypeShouldBeProvided));
                 throw new BadRequestException("invalid type");
             }
             log.info("Websocket message sent: {}", message.getPayload());
@@ -121,11 +129,11 @@ public class WebsocketChannelHandler extends AbstractWebSocketHandler {
     private WebsocketIdentifier generateWebsocketIdentifier(final String uri) {
         final WebsocketIdentifier websocketIdentifier = new WebsocketIdentifier();
         final String token = getTokenFromPath(uri);
-        websocketIdentifier.setToken(token);
         if (token == null) {
             log.error("Unable to extract the websocketIdentifier; serious error!");
             return null;
         }
+        websocketIdentifier.setToken(token);
         websocketIdentifier.setUserId(jwtTokenProvider.getUserIdFromToken(token));
         return websocketIdentifier;
     }

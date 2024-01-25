@@ -146,11 +146,20 @@ public class JwtTokenProvider {
      * @return boolean
      */
     public boolean validateToken(final String token) {
-        parseToken(token);
+        return validateToken(token, true);
+    }
 
+    /**
+     * Boolean result of whether token is valid or not.
+     *
+     * @param token String token
+     * @return boolean
+     */
+    public boolean validateToken(final String token, final boolean isHttp) {
+        parseToken(token);
         try {
             JwtToken jwtToken = jwtTokenService.findByTokenOrRefreshToken(token);
-            if (!httpServletRequest.getHeader("User-agent").equals(jwtToken.getUserAgent())) {
+            if (isHttp && !httpServletRequest.getHeader("User-agent").equals(jwtToken.getUserAgent())) {
                 log.error("[JWT] User-agent is not matched");
                 return false;
             }

@@ -90,6 +90,9 @@ spring:
   liquibase:
     enabled: ${LIQUIBASE_ENABLED:true}
     change-log: classpath:/db/changelog/master.xml
+  docker:
+    compose:
+      lifecycle-management: none
 
 springdoc:
   api-docs:
