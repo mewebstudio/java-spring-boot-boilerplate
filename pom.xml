@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.mewebstudio</groupId>
     <artifactId>java-spring-boot-boilerplate</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2</version>
     <name>java-spring-boot-boilerplate</name>
     <description>Java Spring Boot Boilerplate (Spring Boot 3)</description>
     <properties>
