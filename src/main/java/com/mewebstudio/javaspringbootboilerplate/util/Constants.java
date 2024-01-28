@@ -38,4 +38,21 @@ public final class Constants {
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Invalid role name: %s", name)));
         }
     }
+
+    public static String getTokenFromPath(final String path) {
+        if (path == null || path.isEmpty())
+            return null;
+
+        final String[] fields = path.split("/");
+
+        if (fields.length == 0)
+            return null;
+
+        try {
+            return fields[2];
+        } catch (final IndexOutOfBoundsException e) {
+            System.out.println("Cannot find user or channel id from the path!. Ex:"+ e.getMessage());
+        }
+        return null;
+    }
 }
